@@ -1,0 +1,464 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(funModeling)
+library(Hmisc)
+library(stargazer)
+```
+
+```{r}
+MLD <- read.csv("MLD_CSV.csv")
+```
+
+```{r}
+colnames(MLD)
+
+```
+
+```{r}
+MLD %>% top_n(5)
+```
+# Remove rows with 666 in GDLIN, . in MARRIED, and . in MALE
+
+```{r}
+
+MLD_N <- MLD[!MLD$GDLIN == 666, ]
+MLD_N <- MLD_N[!MLD_N$MARRIED == '.', ]
+MLD_N <- MLD_N[!MLD_N$MALE == '.', ]
+
+```
+# Raw data
+```{r}
+str(MLD)
+```
+
+```{r}
+summary(MLD)
+```
+
+```{r}
+stargazer(MLD, type ="text", digits = 3)
+```
+
+# Scrubbed data
+```{r}
+str(MLD_N)
+```
+
+```{r}
+summary(MLD_N)
+```
+
+```{r}
+stargazer(MLD_N, type ="text", digits = 3)
+```
+
+```{r}
+basic_eda <- function(data)
+{
+  glimpse(data)
+  df_status(data)
+  freq(data) 
+  profiling_num(data)
+  plot_num(data)
+  describe(data)
+}
+```
+
+
+```{r}
+MLD$GDLIN <- as.factor(MLD$GDLIN)
+MLD$BLACK <- as.factor(MLD$BLACK)
+MLD$HISPAN <- as.factor(MLD$HISPAN)
+MLD$APPROVE <- as.factor(MLD$APPROVE)
+MLD$MARRIED <- as.factor(MLD$MARRIED)
+MLD$MALE <- as.factor(MLD$MALE)
+```
+
+```{r}
+basic_eda(MLD_N)
+```
+```{r}
+# Number of rows and variables, and a head of the first cases
+glimpse(MLD_N)
+
+```
+
+```{r}
+# Metrics abut data types, zeros, infinite numbers, and missing values
+df_status(MLD_N)
+
+```
+
+```{r}
+# Analyzing categorical variables
+freq(MLD_N)
+
+```
+
+```{r}
+# Analyzing numerical varialbes
+plot_num(MLD_N)
+
+```
+
+```{r}
+# Quantitative analysis
+profiling_num(MLD_N)
+```
+
+```{r}
+describe(MLD_N)
+```
+
+```{r}
+ggplot(MLD_N, aes(x = GDLIN, y = APPROVE)) + geom_point()
+ggplot(MLD_N, aes(x = GDLIN, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=GDLIN, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = GDLIN, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+```
+```{r}
+ggplot(MLD_N, aes(x = MLD_N$MARRIED, y = APPROVE)) + geom_point()
+ggplot(MLD_N, aes(x = MARRIED, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=MARRIED, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = MARRIED, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+```
+```{r}
+ggplot(MLD_N, aes(x = MLD_N$OBRAT, y = APPROVE)) + geom_point()
+ggplot(MLD_N, aes(x = OBRAT, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=OBRAT, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = OBRAT, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+```
+
+```{r}
+ggplot(MLD_N, aes(x = MLD_N$BLACK, y = APPROVE)) + geom_point()
+ggplot(MLD_N, aes(x = BLACK, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=BLACK, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = BLACK, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+```
+```{r}
+ggplot(MLD_N, aes(x = HISPAN, y = APPROVE)) + geom_point() 
+
+ggplot(MLD_N, aes(x = HISPAN, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=HISPAN, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = HISPAN, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+```
+```{r}
+ggplot(MLD_N, aes(x = MLD_N$MALE, y = APPROVE)) + geom_point() 
+
+ggplot(MLD_N, aes(x = MALE, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=MALE, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = MALE, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+
+```
+
+```{r}
+ggplot(MLD_N, aes(x = MLD_N$LOANPRC, y = APPROVE)) + geom_point() 
+
+ggplot(MLD_N, aes(x = LOANPRC, y = APPROVE)) + geom_point() + geom_smooth(method ='lm')
+
+ggplot( MLD_N, aes(x=LOANPRC, y=APPROVE)) +
+  geom_point() +
+  geom_smooth(data = MLD_N, aes(x = LOANPRC, y = APPROVE),
+    method = "glm", method.args = list(family = "binomial"), 
+    se = FALSE)
+```
+# Descriptive stats for subsets
+
+```{r}
+MLD_N$GDLIN <- as.numeric(MLD_N$GDLIN)
+MLD_N$BLACK <- as.numeric(MLD_N$BLACK)
+MLD_N$HISPAN <- as.numeric(MLD_N$HISPAN)
+MLD_N$APPROVE <- as.numeric(MLD_N$APPROVE)
+MLD_N$MARRIED <- as.numeric(MLD_N$MARRIED)
+MLD_N$MALE <- as.numeric(MLD_N$MALE)
+```
+
+```{r}
+# White
+MLD_white <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0)
+
+stargazer(MLD_white, type ="text", digits = 3)
+
+```
+
+```{r}
+# White MARRIED
+MLD_white_MARRIED <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 3)
+
+stargazer(MLD_white_MARRIED, type ="text", digits = 3)
+
+```
+
+```{r}
+# White MARRIED MALE
+MLD_white_MARRIED_MALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 3) %>% filter(MALE %in% 3)
+
+stargazer(MLD_white_MARRIED_MALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# White MARRIED FEMALE
+MLD_white_MARRIED_FEMALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 3) %>% filter(MALE %in% 2)
+
+stargazer(MLD_white_MARRIED_FEMALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# White UNMARRIED
+MLD_white_UnMARRIED <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 2)
+
+stargazer(MLD_white_UnMARRIED, type ="text", digits = 3)
+
+```
+```{r}
+# White UNMARRIED MALE
+MLD_white_UnMARRIED_MALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 2) %>% filter(MALE %in% 3)
+
+stargazer(MLD_white_UnMARRIED_MALE, type ="text", digits = 3)
+
+```
+```{r}
+# White MARRIED FEMALE
+MLD_white_UnMARRIED_FEMALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 2) %>% filter(MALE %in% 2)
+
+stargazer(MLD_white_UnMARRIED_FEMALE, type ="text", digits = 3)
+
+```
+
+
+```{r}
+# BLACK
+MLD_BLACK <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0)
+
+stargazer(MLD_BLACK, type ="text")
+
+```
+
+```{r}
+# BLACK MARRIED
+MLD_BLACK_MARRIED <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 3)
+
+stargazer(MLD_BLACK_MARRIED, type ="text", digits = 3)
+
+```
+
+```{r}
+# BLACK MARRIED MALE
+MLD_BLACK_MARRIED_MALE <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 3) %>% filter(MALE %in% 3)
+
+stargazer(MLD_BLACK_MARRIED_MALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# BLACK MARRIED FEMALE
+MLD_BLACK_MARRIED_FEMALE <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 3) %>% filter(MALE %in% 2)
+
+stargazer(MLD_BLACK_MARRIED_FEMALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# BLACK UNMARRIED
+MLD_BLACK_UnMARRIED <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 2)
+
+stargazer(MLD_BLACK_UnMARRIED, type ="text", digits = 3)
+
+```
+
+```{r}
+# BLACK UNMARRIED MALE
+MLD_BLACK_UnMARRIED_MALE <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 2) %>% filter(MALE %in% 3)
+
+stargazer(MLD_BLACK_UnMARRIED_MALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# BLACK MARRIED FEMALE
+MLD_BLACK_UnMARRIED_FEMALE <- MLD_N %>% filter (BLACK %in% 1) %>% filter (HISPAN %in% 0) %>% filter (MARRIED %in% 2) %>% filter(MALE %in% 2)
+
+stargazer(MLD_BLACK_UnMARRIED_FEMALE, type ="text", digits = 3)
+
+```
+
+```{r}
+
+# HISPAN
+MLD_HISPAN <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) 
+
+stargazer(MLD_HISPAN, type ="text")
+
+```
+```{r}
+# HISPAN MARRIED
+MLD_HISP_MARRIED <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) %>% filter (MARRIED %in% 3)
+
+stargazer(MLD_HISP_MARRIED, type ="text", digits = 3)
+
+```
+
+```{r}
+# HISPAN MARRIED MALE
+MLD_HISP_MARRIED_MALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) %>% filter (MARRIED %in% 3) %>% filter(MALE %in% 3)
+
+stargazer(MLD_HISP_MARRIED_MALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# HISPAN MARRIED FEMALE
+MLD_HISP_MARRIED_FEMALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) %>% filter (MARRIED %in% 3) %>% filter(MALE %in% 2)
+
+stargazer(MLD_HISP_MARRIED_FEMALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# HISPAN UNMARRIED
+MLD_HISP_UnMARRIED <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) %>% filter (MARRIED %in% 2)
+
+stargazer(MLD_HISP_UnMARRIED, type ="text", digits = 3)
+
+```
+
+```{r}
+# HISPAN UNMARRIED MALE
+MLD_HISP_UnMARRIED_MALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) %>% filter (MARRIED %in% 2) %>% filter(MALE %in% 3)
+
+stargazer(MLD_HISP_UnMARRIED_MALE, type ="text", digits = 3)
+
+```
+
+```{r}
+# HISPAN MARRIED FEMALE
+MLD_HISP_UnMARRIED_FEMALE <- MLD_N %>% filter (BLACK %in% 0) %>% filter (HISPAN %in% 1) %>% filter (MARRIED %in% 2) %>% filter(MALE %in% 2)
+
+stargazer(MLD_HISP_UnMARRIED_FEMALE, type ="text", digits = 3)
+
+```
+
+```{r}
+
+# MARRIED
+MLD_MARRIED <- MLD_N %>% filter (MARRIED %in% 3) 
+
+stargazer(MLD_MARRIED, type ="text")
+
+```
+
+```{r}
+
+# UNMARRIED
+MLD_MARRIED <- MLD_N %>% filter (MARRIED %in% 2) 
+
+stargazer(MLD_MARRIED, type ="text")
+
+```
+
+```{r}
+
+# MALE
+MLD_MALE <- MLD_N %>% filter (MALE %in% 3) 
+
+stargazer(MLD_MALE, type ="text")
+
+```
+
+```{r}
+
+# FEMALE
+MLD_FEMALE <- MLD_N %>% filter (MALE %in% 2) 
+
+stargazer(MLD_FEMALE, type ="text")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+MLD$MARRIED <- as.numeric(MLD$MARRIED)
+MLD$MALE <- as.numeric(MLD$MALE)
+MLD$GDLIN <- as.numeric(MLD$GDLIN)
+MLD$BLACK <- as.numeric(MLD$BLACK)
+MLD$HISPAN <- as.numeric(MLD$HISPAN)
+MLD$APPROVE <- as.numeric(MLD$APPROVE)
+
+```
+
+```{r}
+str(MLD)
+```
+
+```{r}
+cor(MLD)
+```
+
+```{r}
+MLD$GDLIN <- as.factor(MLD$GDLIN)
+MLD$BLACK <- as.factor(MLD$BLACK)
+MLD$HISPAN <- as.factor(MLD$HISPAN)
+MLD$APPROVE <- as.factor(MLD$APPROVE)
+MLD$MARRIED <- as.factor(MLD$MARRIED)
+MLD$MALE <- as.factor(MLD$MALE)
+```
+
+
+```{r}
+library(polycor)
+```
+```{r}
+hetcor(MLD)
+```

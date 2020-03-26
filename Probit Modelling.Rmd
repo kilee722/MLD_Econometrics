@@ -1,0 +1,308 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r echo = FASLE}
+rm(list=ls(all=TRUE))
+```
+ 
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(aod)
+library(stargazer)
+library(corrplot)
+```
+
+```{r}
+MLD <- read.csv("MLD_data.csv")
+NEW_MLD <- read.csv("NEW_MLD.csv")
+MARRIED_MLD <- read.csv("MARRIED_MLD.csv")
+
+```
+
+```{r}
+summary(MLD)
+```
+
+```{r}
+summary(NEW_MLD)
+```
+
+```{r}
+summary(MARRIED_MLD)
+```
+
+```{r}
+MARRIED_MLD$LOANPRC_PER <- MARRIED_MLD$LOANPRC*100
+```
+
+```{r}
+summary(MARRIED_MLD)
+```
+
+##### Running Log mode from sample code--removed gender and martial status
+
+```{r}
+log_mod_min = glm(APPROVE ~ OBRAT + BLACK + HISPAN, data = MARRIED_MLD, family = "binomial"(link = "logit"))
+
+summary(log_mod_min)
+```
+
+```{r}
+prob_mod_min = glm(APPROVE ~ OBRAT + BLACK + HISPAN, data = MARRIED_MLD, family = "binomial"(link = "probit"))
+
+summary(prob_mod_min)
+```
+
+```{r}
+log_min_coef = exp(coef(log_mod_min))
+```
+
+
+###### running full model on scrubbed data 
+
+```{r}
+log_mod_married = glm(APPROVE ~ OBRAT + LOANPRC_PER + GDLIN + BLACK + HISPAN + MARRIED, data = MARRIED_MLD, family = "binomial"(link = "logit"))
+
+summary(log_mod_married)
+```
+
+```{r}
+probit_mod_married = glm(APPROVE ~ OBRAT + LOANPRC_PER + GDLIN +BLACK + HISPAN + MARRIED, data = MARRIED_MLD, family = "binomial"(link = "probit"))
+
+summary(probit_mod_married)
+```
+
+```{r}
+log_married_coef = exp(coef(log_mod_married))
+```
+
+
+```{r}
+stargazer::stargazer(log_mod_married, log_mod_married, probit_mod_married,
+                     type = "text", 
+                     title = "Comparision Between MARRIED Logit and Probit Model",
+                     coef = list(NULL, log_married_coef, NULL), 
+                     se = list(NULL, NA, NULL), 
+                     column.labels = c("Logit", "Odds", "Probit"), 
+                     model.names = FALSE,
+                     align = TRUE, no.space = TRUE)
+```
+
+```{r}
+stargazer::stargazer(log_mod_min, log_mod_min, prob_mod_min,
+                     type = "text", 
+                     title = "Comparision Between MINIMIZED Logit and Probit Model",
+                     coef = list(NULL, log_min_coef, NULL), 
+                     se = list(NULL, NA, NULL), 
+                     column.labels = c("Logit", "Odds", "Probit"), 
+                     model.names = FALSE,
+                     align = TRUE, no.space = TRUE)
+```
+
+```{r}
+stargazer::stargazer(log_mod_married, log_mod_married, probit_mod_married,log_mod_min, log_mod_min, prob_mod_min,
+                     type = "text", 
+                     title = "Comparision Between MARRIED Logit and Probit Model",
+                     coef = list(NULL, log_married_coef, NULL, NULL, log_min_coef, NULL),
+                     se = list(NULL, NA, NULL, NULL, NA, NULL), 
+                     column.labels = c("Logit", "Odds", "Probit"), 
+                     model.names = FALSE,
+                     align = TRUE, no.space = TRUE)
+```
+
+
+
+```{r}
+
+### IMPORTANT NOTES FOR FAMILY
+
+##### testing raw data with non-numerica variable issues
+##### plotting model
+##### PLOTTING GLM MODELS--https://www.theanalysisfactor.com/r-glm-plotting/
+##### https://thomasleeper.com/Rcourse/Tutorials/binaryglmplots.html
+```
+
+
+```{r}
+#Define prototypical loan applicants (you will need more than 3)
+logit_married_black_protype <- data.frame(OBRAT = mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER), GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 1, BLACK = 1, HISPAN = 0)
+
+logit_married_hispanic_protype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT),  LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 1, BLACK = 0, HISPAN = 1)
+
+logit_married_white_prototype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 1, BLACK = 0, HISPAN = 0)
+```
+
+```{r}
+#Predict probabilities for prototypical individuals
+logit_married_black_protype$predictedprob <- predict (log_mod_married, newdata = logit_married_black_protype, type ="response")
+
+logit_married_hispanic_protype$predictedprob <- predict (log_mod_married, newdata = logit_married_hispanic_protype, type ="response")
+
+logit_married_white_prototype$predictedprob <- predict (log_mod_married, newdata = logit_married_white_prototype, type ="response")
+```
+
+```{r}
+logit_married_black_protype
+logit_married_hispanic_protype
+logit_married_white_prototype
+```
+
+```{r}
+print("Married Black Approval Logit Model Results")
+exp(0.8818641) - 1
+
+print("Married Hispanic Approval Logit Model Results")
+exp(0.8725286) - 1
+
+print("Married White Approval Logit Model Results")
+exp(0.9434503) - 1
+
+```
+
+```{r}
+logit_married_black_protype$odds <- exp(0.8818641)
+logit_married_hispanic_protype$odds <- exp(0.8725286)
+logit_married_white_prototype$oddss <- exp(0.9434503)
+```
+
+```{r}
+#Define prototypical loan applicants (you will need more than 3)
+probit_married_black_protype <- data.frame(OBRAT = mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER), GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 1, BLACK = 1, HISPAN = 0)
+
+probit_married_hispanic_protype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT),  LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 1, BLACK = 0, HISPAN = 1)
+
+probit_married_white_prototype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 1, BLACK = 0, HISPAN = 0)
+```
+
+```{r}
+#Predict probabilities for prototypical individuals
+probit_married_black_protype$predictedprob <- predict (probit_mod_married, newdata = probit_married_black_protype, type ="response")
+
+probit_married_hispanic_protype$predictedprob <- predict (probit_mod_married, newdata = probit_married_hispanic_protype, type ="response")
+
+probit_married_white_prototype$predictedprob <- predict (probit_mod_married, newdata = probit_married_white_prototype, type ="response")
+```
+
+```{r}
+probit_married_black_protype
+probit_married_hispanic_protype
+probit_married_white_prototype
+```
+
+
+```{r}
+#Define prototypical loan applicants (you will need more than 3)
+logit_single_black_protype <- data.frame(OBRAT = mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER), GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 0, BLACK = 1, HISPAN = 0)
+
+logit_single_hispanic_protype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT),  LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 0, BLACK = 0, HISPAN = 1)
+
+logit_single_white_prototype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 0, BLACK = 0, HISPAN = 0)
+```
+
+```{r}
+#Predict probabilities for prototypical individuals
+logit_single_black_protype$predictedprob <- predict (log_mod_married, newdata = logit_single_black_protype, type ="response")
+
+logit_single_hispanic_protype$predictedprob <- predict (log_mod_married, newdata = logit_single_hispanic_protype, type ="response")
+
+logit_single_white_prototype$predictedprob <- predict (log_mod_married, newdata = logit_single_white_prototype, type ="response")
+```
+
+```{r}
+logit_single_black_protype
+logit_single_hispanic_protype
+logit_single_white_prototype
+```
+
+```{r}
+print("Single Black Approval Logit Model Results")
+exp(0.8252997) - 1
+
+print("Single Hispanic Approval Logit Model Results")
+exp(0.812445) - 1
+
+print("Single White Approval Logit Model Results")
+exp(0.9134808) - 1
+
+```
+
+```{r}
+logit_single_black_protype$odds <- exp(0.8252997)
+logit_single_hispanic_protype$odds <- exp(0.812445)
+logit_single_white_prototype$odds <- exp(0.9134808)
+```
+
+```{r}
+#Define prototypical loan applicants (you will need more than 3)
+probit_single_black_protype <- data.frame(OBRAT = mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER), GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 0, BLACK = 1, HISPAN = 0)
+
+probit_single_hispanic_protype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT),  LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 0, BLACK = 0, HISPAN = 1)
+
+probit_single_white_prototype <- data.frame(OBRAT=mean(MARRIED_MLD$OBRAT), LOANPRC_PER = mean(MARRIED_MLD$LOANPRC_PER),  GDLIN = mean(MARRIED_MLD$GDLIN), MARRIED = 0, BLACK = 0, HISPAN = 0)
+```
+
+```{r}
+#Predict probabilities for prototypical individuals
+probit_single_black_protype$predictedprob <- predict (probit_mod_married, newdata = probit_single_black_protype, type ="response")
+
+probit_single_hispanic_protype$predictedprob <- predict (probit_mod_married, newdata = probit_single_hispanic_protype, type ="response")
+
+probit_single_white_prototype$predictedprob <- predict (probit_mod_married, newdata = probit_single_white_prototype, type ="response")
+```
+
+```{r}
+probit_single_black_protype
+probit_single_hispanic_protype
+probit_single_white_prototype
+```
+
+```{r}
+stargazer::stargazer(logit_married_black_protype, logit_married_hispanic_protype, logit_married_white_prototype,
+  type = "text", title = c("Married Black Logit Results", "Married Hispanic Logit Results", "Married White Logit Results"))
+```
+
+```{r}
+stargazer::stargazer(probit_married_black_protype, probit_married_hispanic_protype, probit_married_white_prototype, 
+  type = "text", 
+  title = c("Married Black Probit Results", "Married Hispanic Probit Results", "Married White Probit Results"))
+```
+
+```{r}
+stargazer::stargazer(logit_single_black_protype, logit_single_hispanic_protype, logit_single_white_prototype,
+  type = "text", title = c("Single Black Logit Results", "Single Hispanic Logit Results", "Single White Logit Results"))
+```
+
+```{r}
+stargazer::stargazer(probit_single_black_protype, probit_single_hispanic_protype, probit_single_white_prototype, 
+  type = "text", 
+  title = c("Single Black Probit Results", "Single Hispanic Probit Results", "Single White Probit Results"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
