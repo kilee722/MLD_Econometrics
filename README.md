@@ -31,7 +31,7 @@ Table2: Comparing Full Model Results between Probit and Logit Models
 
 Tabl3: Full Logit Model Resuts ~ Odds
 
-![image](https://user-images.githubusercontent.com/55430338/77610787-ed3aba00-6ee0-11ea-8742-66b8bc4f6710.png)
+![image](https://user-images.githubusercontent.com/55430338/77611120-c0d36d80-6ee1-11ea-9b08-4afcea97b988.png)
 
 Table4: Comparing Logit and Probit Probabilities
 
